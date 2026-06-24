@@ -64,13 +64,14 @@ app.use('/api/auth', authRouter);
 app.get('/api/health', (_, res) => res.json({ status: 'ok' }));
 
 const DIST = join(__dirname, '../frontend/dist');
+const DIST_INDEX = join(DIST, 'index.html');
 
-if (IS_PROD) {
-  if (existsSync(DIST)) {
-    app.use(express.static(DIST, { maxAge: '1y', immutable: true }));
-  } else {
-    console.warn('WARNING: frontend/dist not found — static files will not be served');
-  }
+// Serve built frontend unconditionally — works regardless of NODE_ENV value.
+// In local dev the dist folder won't exist, so this is a no-op.
+if (existsSync(DIST)) {
+  app.use(express.static(DIST, { maxAge: '1y', immutable: true }));
+} else {
+  console.warn('WARNING: frontend/dist not found — static files will not be served');
 }
 
 app.use('/api', requireAuth);
@@ -85,16 +86,14 @@ app.use('/api/prospects',        prospectsRouter);
 app.use('/api/sequences',        sequencesRouter);
 app.use('/api/marketing-leads',  marketingLeadsRouter);
 
-if (IS_PROD) {
-  app.get('*', (req, res) => {
-    const index = join(DIST, 'index.html');
-    if (existsSync(index)) {
-      res.sendFile(index);
-    } else {
-      res.status(503).send('Frontend not built. Run: npm run build');
-    }
-  });
-}
+// SPA catch-all — unconditional so Railway serves index.html regardless of NODE_ENV
+app.get('*', (req, res) => {
+  if (existsSync(DIST_INDEX)) {
+    res.sendFile(DIST_INDEX);
+  } else {
+    res.status(503).send('Frontend not built. Run: npm run build');
+  }
+});
 
 // ── Database init ─────────────────────────────────────────────────────────────
 
