@@ -63,10 +63,13 @@ app.use('/api/auth/forgot-password', loginLimiter);
 app.use('/api/auth', authRouter);
 app.get('/api/health', (_, res) => res.json({ status: 'ok' }));
 
+const DIST = join(__dirname, '../frontend/dist');
+
 if (IS_PROD) {
-  const DIST = join(__dirname, '../frontend/dist');
   if (existsSync(DIST)) {
     app.use(express.static(DIST, { maxAge: '1y', immutable: true }));
+  } else {
+    console.warn('WARNING: frontend/dist not found — static files will not be served');
   }
 }
 
@@ -83,10 +86,14 @@ app.use('/api/sequences',        sequencesRouter);
 app.use('/api/marketing-leads',  marketingLeadsRouter);
 
 if (IS_PROD) {
-  const DIST = join(__dirname, '../frontend/dist');
-  if (existsSync(DIST)) {
-    app.get('*', (req, res) => res.sendFile(join(DIST, 'index.html')));
-  }
+  app.get('*', (req, res) => {
+    const index = join(DIST, 'index.html');
+    if (existsSync(index)) {
+      res.sendFile(index);
+    } else {
+      res.status(503).send('Frontend not built. Run: npm run build');
+    }
+  });
 }
 
 // ── Database init ─────────────────────────────────────────────────────────────
