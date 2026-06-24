@@ -134,14 +134,13 @@ async function initDatabase() {
   const db = process.env.DOLT_DATABASE || 'dolt_crm';
 
   // Bootstrap: connect without database to create it
-  const sslConfig = process.env.DOLT_SSL === 'true' ? { ssl: { rejectUnauthorized: false } } : {};
   const bootstrap = await mysql.createConnection({
     host:     process.env.DOLT_HOST     || 'localhost',
     port:     parseInt(process.env.DOLT_PORT || '3307', 10),
     user:     process.env.DOLT_USER     || 'root',
     password: process.env.DOLT_PASSWORD || '',
     multipleStatements: false,
-    ...sslConfig,
+    ssl: process.env.DB_USE_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
   });
 
   await bootstrap.query(`CREATE DATABASE IF NOT EXISTS \`${db}\``);

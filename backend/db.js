@@ -1,8 +1,6 @@
 import mysql from 'mysql2/promise';
 import 'dotenv/config';
 
-const sslConfig = process.env.DOLT_SSL === 'true' ? { ssl: { rejectUnauthorized: false } } : {};
-
 const pool = mysql.createPool({
   host:             process.env.DOLT_HOST     || 'localhost',
   port:             parseInt(process.env.DOLT_PORT || '3307', 10),
@@ -12,7 +10,7 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit:  10,
   multipleStatements: false,
-  ...sslConfig,
+  ssl: process.env.DB_USE_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
 });
 
 export default pool;
