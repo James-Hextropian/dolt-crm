@@ -65,9 +65,9 @@ app.get('/api/health', (_, res) => res.json({ status: 'ok' }));
 
 const DIST = join(__dirname, '../frontend/dist');
 const DIST_INDEX = join(DIST, 'index.html');
+console.log('Serving static from:', DIST);
+console.log('dist exists:', existsSync(DIST));
 
-// Serve built frontend unconditionally — works regardless of NODE_ENV value.
-// In local dev the dist folder won't exist, so this is a no-op.
 if (existsSync(DIST)) {
   app.use(express.static(DIST, { maxAge: '1y', immutable: true }));
 } else {
