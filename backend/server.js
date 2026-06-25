@@ -63,8 +63,12 @@ app.use('/api/auth/forgot-password', loginLimiter);
 app.use('/api/auth', authRouter);
 app.get('/api/health', (_, res) => res.json({ status: 'ok' }));
 
-const DIST = join(__dirname, '../frontend/dist');
+// Use process.cwd() so the path resolves correctly regardless of where
+// node is invoked from (Railway runs from repo root: node backend/server.js)
+const DIST = join(process.cwd(), 'frontend', 'dist');
 const DIST_INDEX = join(DIST, 'index.html');
+console.log('__dirname      :', __dirname);
+console.log('process.cwd()  :', process.cwd());
 console.log('Serving static from:', DIST);
 console.log('dist exists:', existsSync(DIST));
 
@@ -86,7 +90,7 @@ app.use('/api/prospects',        prospectsRouter);
 app.use('/api/sequences',        sequencesRouter);
 app.use('/api/marketing-leads',  marketingLeadsRouter);
 
-// SPA catch-all — unconditional so Railway serves index.html regardless of NODE_ENV
+// SPA catch-all — must be last route
 app.get('*', (req, res) => {
   if (existsSync(DIST_INDEX)) {
     res.sendFile(DIST_INDEX);
