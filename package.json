@@ -3,8 +3,8 @@
   "private": true,
   "scripts": {
     "dev": "concurrently -n backend,frontend -c cyan,magenta \"cd backend && npm run dev\" \"cd frontend && npm run dev\"",
-    "start": "node backend/server.js",
-    "build": "cd frontend && npm install && npm run build",
+    "start": "npm install --prefix backend && node backend/server.js",
+    "build": "npm install --prefix frontend && npm run --prefix frontend build",
     "backend": "cd backend && npm run dev",
     "frontend": "cd frontend && npm run dev"
   },
