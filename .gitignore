@@ -6,8 +6,5 @@ frontend/node_modules/
 backend/.env
 frontend/.env.local
 
-# Build output
-frontend/dist/
-
 # OS
 .DS_Store
