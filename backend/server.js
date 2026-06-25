@@ -4,13 +4,11 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 process.on('uncaughtException', (err) => {
-  console.error('UNCAUGHT EXCEPTION:', err.message, err.stack);
-  process.exit(1);
+  console.error('UNCAUGHT EXCEPTION (logged, not exiting):', err.message, err.stack);
 });
 
 process.on('unhandledRejection', (reason) => {
-  console.error('UNHANDLED REJECTION:', reason);
-  process.exit(1);
+  console.error('UNHANDLED REJECTION (logged, not exiting):', reason);
 });
 import mysql from 'mysql2/promise';
 import bcrypt from 'bcryptjs';

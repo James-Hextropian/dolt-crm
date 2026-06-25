@@ -13,6 +13,11 @@ const pool = mysql.createPool({
   ssl: process.env.DB_USE_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
 });
 
+// Prevent pool connection errors from becoming uncaught exceptions
+pool.on('error', (err) => {
+  console.error('DB pool error (connection will be retried):', err.message);
+});
+
 export default pool;
 
 // Run fn(conn) with a dedicated connection, then DOLT_ADD + DOLT_COMMIT on same conn.
