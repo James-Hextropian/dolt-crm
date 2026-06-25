@@ -49,13 +49,24 @@ const app = express();
 if (IS_PROD) app.set('trust proxy', 1);
 app.use(compression());
 
-const ALLOWED_ORIGINS = (process.env.FRONTEND_URL || 'http://localhost:5176,http://localhost:5177')
-  .split(',').map(o => o.trim());
+const allowedOrigins = [
+  'http://localhost:5176',
+  'http://localhost:5177',
+  'http://localhost:5178',
+  'https://web-production-19964.up.railway.app',
+  process.env.RAILWAY_STATIC_URL,
+  process.env.RAILWAY_PUBLIC_DOMAIN,
+  process.env.FRONTEND_URL,
+].filter(Boolean);
 
 app.use(cors({
-  origin: (origin, cb) => {
-    if (!origin || ALLOWED_ORIGINS.includes(origin)) cb(null, true);
-    else cb(new Error(`CORS: origin ${origin} not allowed`));
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.error('CORS blocked:', origin);
+      callback(new Error('CORS: origin ' + origin + ' not allowed'));
+    }
   },
   credentials: true,
 }));
