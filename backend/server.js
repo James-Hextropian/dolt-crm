@@ -1,7 +1,17 @@
 import 'dotenv/config';
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, existsSync, readdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+
+process.on('uncaughtException', (err) => {
+  console.error('UNCAUGHT EXCEPTION:', err.message, err.stack);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('UNHANDLED REJECTION:', reason);
+  process.exit(1);
+});
 import mysql from 'mysql2/promise';
 import bcrypt from 'bcryptjs';
 import express from 'express';
@@ -20,6 +30,11 @@ import documentsRouter  from './routes/documents.js';
 import prospectsRouter       from './routes/prospects.js';
 import sequencesRouter       from './routes/sequences.js';
 import marketingLeadsRouter  from './routes/marketing-leads.js';
+
+console.log('Step 1: Server starting...');
+console.log('Step 2: NODE_ENV =', process.env.NODE_ENV);
+console.log('Step 3: DOLT_HOST =', process.env.DOLT_HOST);
+console.log('Step 4: PORT =', process.env.PORT);
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const IS_PROD   = process.env.NODE_ENV === 'production';
@@ -67,13 +82,18 @@ app.get('/api/health', (_, res) => res.json({ status: 'ok' }));
 // node is invoked from (Railway runs from repo root: node backend/server.js)
 const DIST = join(process.cwd(), 'frontend', 'dist');
 const DIST_INDEX = join(DIST, 'index.html');
-console.log('__dirname      :', __dirname);
-console.log('process.cwd()  :', process.cwd());
-console.log('Serving static from:', DIST);
-console.log('dist exists:', existsSync(DIST));
+console.log('Step 5: __dirname      =', __dirname);
+console.log('Step 5: process.cwd()  =', process.cwd());
+console.log('Step 5: DIST path      =', DIST);
+console.log('Step 5: dist exists    =', existsSync(DIST));
+if (existsSync(DIST)) {
+  try {
+    console.log('Step 5: dist contents  =', readdirSync(DIST).join(', '));
+  } catch (e) { console.warn('Could not read dist dir:', e.message); }
+}
 
 if (existsSync(DIST)) {
-  app.use(express.static(DIST, { maxAge: '1y', immutable: true }));
+  app.use(express.static(DIST));
 } else {
   console.warn('WARNING: frontend/dist not found — static files will not be served');
 }
@@ -260,14 +280,18 @@ async function seedData(db) {
 }
 
 async function start() {
+  console.log('Step 6: Starting DB init...');
   try {
     await initDatabase();
+    console.log('Step 7: DB init complete.');
   } catch (err) {
-    console.error('Database init error:', err.message);
-    process.exit(1);
+    // Log the error but let the server start so static files are still served.
+    // API routes will fail gracefully with 500 until the DB is reachable.
+    console.error('DB init error (server will still start):', err.message);
   }
+  console.log('Step 8: Calling app.listen on port', PORT);
   app.listen(PORT, () =>
-    console.log(`DoltHub CRM API running on http://localhost:${PORT}`)
+    console.log(`Step 9: DoltHub CRM API running on port ${PORT}`)
   );
 }
 
