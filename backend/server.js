@@ -78,24 +78,35 @@ app.use('/api/auth/forgot-password', loginLimiter);
 app.use('/api/auth', authRouter);
 app.get('/api/health', (_, res) => res.json({ status: 'ok' }));
 
-// Use process.cwd() so the path resolves correctly regardless of where
-// node is invoked from (Railway runs from repo root: node backend/server.js)
-const DIST = join(process.cwd(), 'frontend', 'dist');
-const DIST_INDEX = join(DIST, 'index.html');
-console.log('Step 5: __dirname      =', __dirname);
-console.log('Step 5: process.cwd()  =', process.cwd());
-console.log('Step 5: DIST path      =', DIST);
-console.log('Step 5: dist exists    =', existsSync(DIST));
-if (existsSync(DIST)) {
-  try {
-    console.log('Step 5: dist contents  =', readdirSync(DIST).join(', '));
-  } catch (e) { console.warn('Could not read dist dir:', e.message); }
+// Try multiple possible dist locations and use the first that has index.html
+const possiblePaths = [
+  join(process.cwd(), 'frontend', 'dist'),
+  join(__dirname, '..', 'frontend', 'dist'),
+  join(__dirname, 'frontend', 'dist'),
+  '/app/frontend/dist',
+];
+
+console.log('Step 5: __dirname     =', __dirname);
+console.log('Step 5: cwd           =', process.cwd());
+
+let distPath = null;
+for (const p of possiblePaths) {
+  const hasIndex = existsSync(join(p, 'index.html'));
+  console.log('Checking path:', p, '— exists:', existsSync(p), '— has index.html:', hasIndex);
+  if (hasIndex) {
+    distPath = p;
+    console.log('Using frontend dist:', distPath);
+    try {
+      console.log('dist contents:', readdirSync(distPath).join(', '));
+    } catch (e) { /* ignore */ }
+    break;
+  }
 }
 
-if (existsSync(DIST)) {
-  app.use(express.static(DIST));
+if (distPath) {
+  app.use(express.static(distPath));
 } else {
-  console.warn('WARNING: frontend/dist not found — static files will not be served');
+  console.error('Frontend dist NOT FOUND — checked:', possiblePaths);
 }
 
 app.use('/api', requireAuth);
@@ -112,8 +123,8 @@ app.use('/api/marketing-leads',  marketingLeadsRouter);
 
 // SPA catch-all — must be last route
 app.get('*', (req, res) => {
-  if (existsSync(DIST_INDEX)) {
-    res.sendFile(DIST_INDEX);
+  if (distPath) {
+    res.sendFile(join(distPath, 'index.html'));
   } else {
     res.status(503).send('Frontend not built. Run: npm run build');
   }
