@@ -4,9 +4,22 @@
   "scripts": {
     "dev": "concurrently -n backend,frontend -c cyan,magenta \"cd backend && npm run dev\" \"cd frontend && npm run dev\"",
     "start": "node backend/server.js",
-    "build": "npm install --prefix frontend && npm run --prefix frontend build && npm install --prefix backend",
+    "build": "npm install --prefix frontend && npm run --prefix frontend build",
     "backend": "cd backend && npm run dev",
     "frontend": "cd frontend && npm run dev"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "compression": "^1.8.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^8.4.1",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.1.1",
+    "mysql2": "^3.11.0",
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"
